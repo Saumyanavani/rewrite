@@ -62,6 +62,26 @@ public class ArrayHashCodeAndToString extends Recipe {
     }
 
     private static class ArrayHashCodeAndToStringVisitor<P> extends JavaIsoVisitor<P> {
+        @Override
+        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, P p) {
+            if (method.getSelect() != null){
+                if (method.getSelect().getType() instanceof JavaType.Array){
+                    if (hashCodeMethodMatcher.matches(method)){
+                        maybeAddImport("java.util.Arrays");
+                        JavaTemplate hashCodeTemplate = JavaTemplate.builder(this::getCursor, "Arrays.hashCode(#{anyArray()})").imports("java.util.Arrays").build();
+                        return method.withTemplate(hashCodeTemplate, method.getCoordinates().replace(), method.getSelect());
+                    } else if (toStringMethodMatcher.matches(method)) {
+                        maybeAddImport("java.util.Arrays");
+                        JavaTemplate toStringTemplate = JavaTemplate.builder(this::getCursor, "Arrays.toString(#{anyArray()})").imports("java.util.Arrays").build();
+                        return method.withTemplate(toStringTemplate, method.getCoordinates().replace(), method.getSelect());
+                    }
+                }
+            }
 
+            return super.visitMethodInvocation(method, p);
+        }
+
+        private static final MethodMatcher hashCodeMethodMatcher = new MethodMatcher("Object hashCode()");
+        private static final MethodMatcher toStringMethodMatcher = new MethodMatcher("Object toString()");
     }
 }

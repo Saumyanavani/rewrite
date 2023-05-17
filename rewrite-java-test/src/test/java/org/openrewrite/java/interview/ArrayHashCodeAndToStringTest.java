@@ -38,6 +38,41 @@ public class ArrayHashCodeAndToStringTest implements RewriteTest {
     }
 
     @Test
+    void check_Array_Object_Type() {
+        rewriteRun(
+          java(
+            """
+              class A {
+                  public static void main(Object args) {
+                      int argHash = args.hashCode();
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void simple_Test() {
+        rewriteRun(
+          java(
+            """
+              class A {
+                  public static void main(Object args) {
+//                      int argHash = args.hashCode();
+                      foo(args);
+                  }
+                  
+                  public static void foo(Object args){
+                    System.out.println(args);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
     void replace_Array_toString_with_Arrays_toString() {
         rewriteRun(
           java(
@@ -53,7 +88,31 @@ public class ArrayHashCodeAndToStringTest implements RewriteTest {
               
               class A {
                   public static void main(String[] args) {
-                      int argHash = Arrays.toString(args);
+                      String argStr = Arrays.toString(args);
+                  }
+              }
+              """
+          )
+        );
+    }
+
+    @Test
+    void replace_Array_toString_with_Arrays_toString_toString() {
+        rewriteRun(
+          java(
+            """
+              class A {
+                  public static void main(String[] args) {
+                      String argStr = args.toString().toString();
+                  }
+              }
+              """,
+            """
+              import java.util.Arrays;
+              
+              class A {
+                  public static void main(String[] args) {
+                      String argStr = Arrays.toString(args).toString();
                   }
               }
               """
